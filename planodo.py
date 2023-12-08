@@ -4,9 +4,6 @@ import PIL.Image
 import warnings
 import json
 from progress.bar import Bar
-import textbase
-import xml.etree.ElementTree as ET
-import traceback
 
 
 # Disable the warnings for giant images
@@ -45,7 +42,6 @@ def layout(
     background_color="#ffffff",
     onestripe=False,
 ):
-
     width = MAX_WIDTH + 1
     height = MAX_HEIGHT + 1
 
@@ -194,7 +190,7 @@ def horzvert_layout(
     else:
         margin = stripe_size * 0.965
 
-    stripe_height += 50 # small space between stripes
+    stripe_height += 50  # small space between stripes
 
     idx = 0
     while files or thefile:
@@ -232,7 +228,7 @@ def horzvert_layout(
                 cur_size += thefile.new_width
                 thefile = None
                 y += stripe_height
-                y += frame                
+                y += frame
                 stripe_idx += 1
                 stripes.append(cur_size)
                 cur_size = 0
