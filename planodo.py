@@ -3,7 +3,10 @@ import math, random
 import PIL.Image
 import warnings
 import json
+import fitz
+import pyvips
 from progress.bar import Bar
+import tempfile
 
 
 # Disable the warnings for giant images
@@ -389,6 +392,49 @@ def read_files_directory(path, regex=r".*jpg"):
         filepath = os.path.join(path, filename)
         files.append(filepath)
     return read_files_filepaths(files)
+
+
+def pdf_to_tif(filepath, dpi=100):
+    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir_path = temp_dir.name
+
+    doc = fitz.open(filepath)
+    slug = filepath.split("/")[-1].split(".")[0]
+    slug = "".join(
+        [c for c in slug.lower() if c in "abcdefghijklmnopqrstuvwxyz0123456789_"]
+    )
+
+    filepaths = []
+    for i, page in enumerate(doc):
+        bmp_filepath = os.path.join(temp_dir_path, f"{slug}_{i}.png")
+        if not os.path.exists(bmp_filepath):
+            pix = page.get_pixmap(dpi=dpi)
+            pix.save(bmp_filepath)
+
+        filepaths.append(bmp_filepath)
+
+    the_files = read_files_filepaths(filepaths)
+    d = layout(the_files)
+    width, height = d["width"], d["height"]
+
+    open(filepath + "_layout.json", "w").write(json.dumps(d, indent=2))
+    bitmap_path = os.path.join(temp_dir_path, f"big.png")
+    if not os.path.exists(bitmap_path):
+        make_bitmap(d, bitmap_path)
+
+    tif_path = filepath + "_pyramid.tif"
+    if not os.path.exists(tif_path):
+        image = pyvips.Image.new_from_file(bitmap_path, access="sequential")
+        image = image.colourspace("srgb")
+        image.tiffsave(
+            tif_path,
+            tile=True,
+            pyramid=True,
+            bigtiff=True,
+            compression="jpeg",
+        )
+
+    temp_dir.cleanup()
 
 
 if __name__ == "__main__":
