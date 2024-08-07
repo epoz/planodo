@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="Planodo",
-    version="0.9",
+    version="0.10",
     description="Utility library for creating large zoomable images",
     author="Etienne Posthumus",
     author_email="ep@epoz.org",
